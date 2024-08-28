@@ -9,11 +9,15 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<packaging>jar</packaging>
-	<groupId>br.ueg.progweb2</groupId>
-	<artifactId>arquitetura-prog-web-ii</artifactId>
+	<groupId>br.g2.progweb2</groupId>
+	<artifactId>arquitetura-prog-web-2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Arquitetura-Prog-WEB-II</name>
-	<description>Arquitetura base para desenvolvimento de aplicações web</description>
+	<name>Progweb-II-Arquitetura-Backend</name>
+	<description>
+		Arquitetura base para desenvolvimento de
+		aplicações web a partir do que foi disponibilizado
+		pelo professor Guiliano
+	</description>
 	<properties>
 		<java.version>21</java.version>
 		<org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
