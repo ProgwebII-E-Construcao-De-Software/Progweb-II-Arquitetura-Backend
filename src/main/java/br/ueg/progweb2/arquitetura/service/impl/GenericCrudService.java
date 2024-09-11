@@ -1,8 +1,10 @@
 package br.ueg.progweb2.arquitetura.service.impl;
 
 import br.ueg.progweb2.arquitetura.exceptions.DataException;
+import br.ueg.progweb2.arquitetura.exceptions.MandatoryException;
 import br.ueg.progweb2.arquitetura.mapper.GenericUpdateMapper;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
+import br.ueg.progweb2.arquitetura.reflection.ModelReflection;
 import br.ueg.progweb2.arquitetura.service.CrudService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,7 +56,7 @@ public abstract class GenericCrudService<
 
     protected void updateDataDBFromUpdate(MODEL dataToUpdate, MODEL dataDB){
         mapper.updateModelFromModel(dataDB, dataToUpdate);
-    };
+    }
 
     @Override
     public MODEL getById(TYPE_PK id){
@@ -96,7 +98,12 @@ public abstract class GenericCrudService<
 
     protected abstract void validateBusinessLogicForUpdate(MODEL dado) ;
 
-    protected abstract void validateBusinessLogic(MODEL dado) ;
+    protected abstract void validateBusinessLogic(MODEL dado);
 
-    protected abstract void validateMandatoryFields(MODEL dado);
+    protected void validateMandatoryFields(MODEL dado){
+        String response = ModelReflection.getInvalidMandatoryFields(dado).toString();
+        if(!response.isEmpty()){
+            throw new MandatoryException(response);
+        }
+    }
 }
