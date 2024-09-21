@@ -1,6 +1,7 @@
 package br.ueg.progweb2.arquitetura.reflection;
 
 import br.ueg.progweb2.arquitetura.model.GenericModel;
+import br.ueg.progweb2.arquitetura.model.MandatoryField;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -45,45 +46,16 @@ public class ModelReflection {
      * @return mandatoryFields
      */
     public static List<Field> getMandatoryFields(GenericModel<?> clazz){
+        List<Field> allFields = getEntityFields(clazz);
         List<Field> mandatoryFields = new ArrayList<>(List.of());
-        getEntityFields(clazz).forEach(field -> {
-            if(isMandatoryField(field)){
+        allFields.forEach(field -> {
+            if(field.isAnnotationPresent(MandatoryField.class)){
                 mandatoryFields.add(field);
             }
         });
-                return mandatoryFields;
+        return mandatoryFields;
     }
 
-    /**
-     *  Method responsible for return if a given field is assigned as a mandatory field or not
-     * @param field
-     * @return isAssigned
-     */
-    private static boolean isMandatoryField(Field field) {
-
-        if(field.isAnnotationPresent(Column.class)){
-            Column column = field.getAnnotation(Column.class);
-            return Boolean.FALSE.equals(column.nullable());
-        }
-        else if(field.isAnnotationPresent(Id.class) && !field.isAnnotationPresent(GeneratedValue.class) ){
-            return true;
-        }
-        else if(field.isAnnotationPresent(JoinColumn.class )){
-            JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
-            return Boolean.FALSE.equals(joinColumn.nullable());
-        }
-        return false;
-    }
-
-    /**
-     * Method responsible for  return if a given annotation represents an atribute af a field
-     * @param annotation
-     * @return isEntityAnnotation
-     */
-    public static boolean isEntityAnnotation(Annotation annotation){
-        String name = annotation.annotationType().getSimpleName();
-        return modelFieldAnnotation.contains(name);
-    }
 
     /**
      *  Method responsible for return the value of a given field
@@ -108,6 +80,18 @@ public class ModelReflection {
         }
     }
 
+
+    /**
+     * Method responsible for  return if a given annotation represents an atribute af a field
+     * @param annotation
+     * @return isEntityAnnotation
+     */
+    public static boolean isEntityAnnotation(Annotation annotation){
+        String name = annotation.annotationType().getSimpleName();
+        return modelFieldAnnotation.contains(name);
+    }
+
+
     /**
      * Method responsible for return  if a given field was filled
      * @param clazz
@@ -127,7 +111,7 @@ public class ModelReflection {
         return false;
     }
 
-    public static List<Field> getInvalidMandatoryFields(GenericModel<?> clazz){
+    public static List<String> getInvalidMandatoryFields(GenericModel<?> clazz){
         List<Field> invalidMandatoryFields = new ArrayList<>(List.of());
         getMandatoryFields(clazz).forEach(field -> {
             if(!isFieldFilled(clazz, field)){
@@ -135,6 +119,6 @@ public class ModelReflection {
             }
         });
 
-        return invalidMandatoryFields;
+        return StringReflection.fromFieldListToStringList(invalidMandatoryFields);
     }
 }
