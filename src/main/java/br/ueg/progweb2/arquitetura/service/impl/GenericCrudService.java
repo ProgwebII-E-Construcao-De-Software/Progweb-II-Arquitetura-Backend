@@ -1,6 +1,7 @@
 package br.ueg.progweb2.arquitetura.service.impl;
 
-import br.ueg.progweb2.arquitetura.exceptions.DataException;
+import br.ueg.progweb2.arquitetura.exceptions.BusinessException;
+import br.ueg.progweb2.arquitetura.exceptions.ErrorValidation;
 import br.ueg.progweb2.arquitetura.exceptions.MandatoryException;
 import br.ueg.progweb2.arquitetura.mapper.GenericUpdateMapper;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
@@ -8,11 +9,13 @@ import br.ueg.progweb2.arquitetura.reflection.ModelReflection;
 import br.ueg.progweb2.arquitetura.service.CrudService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
+@Transactional(propagation = Propagation.REQUIRED)
 public abstract class GenericCrudService<
             MODEL extends GenericModel<TYPE_PK>,
             TYPE_PK,
@@ -25,85 +28,73 @@ public abstract class GenericCrudService<
     @Autowired
     private GenericUpdateMapper<MODEL, TYPE_PK> mapper;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    @Autowired
-    protected REPOSITORY repository;
-    public List<MODEL> listAll(){
-        return repository.findAll();
-    }
+        @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+        @Autowired
+        REPOSITORY repository;
 
-    @Override
-    public MODEL create(MODEL dado) {
-        prepareToCreate(dado);
-        validateMandatoryFields(dado);
-        validateBusinessLogic(dado);
-        validateBusinessLogicForInsert(dado);
-        MODEL saved = repository.saveAndFlush(dado);
-        return this.getById(saved.getId());
-    }
+        public List<MODEL> getAll() {
+            var modelList = repository.findAll();
+            validateBusinessToList(modelList);
+            return modelList;
+        }
 
-    protected abstract void prepareToCreate(MODEL dado);
+        public MODEL getById(TYPE_PK id) {
+            return validateId(id);
+        }
 
-    @Override
-    public MODEL update(MODEL dataToUpdate){
-        var dataDB = validateIdModelExists(dataToUpdate.getId());
-        validateMandatoryFields(dataToUpdate);
-        validateBusinessLogic(dataToUpdate);
-        validateBusinessLogicForUpdate(dataToUpdate);
-        updateDataDBFromUpdate(dataToUpdate, dataDB);
-        return repository.save(dataDB);
-    }
+        public MODEL create(MODEL newModel) {
+            validateMandatoryFields(newModel);
+            validateBusinessLogicToCreate(newModel);prepareToCreate(newModel);
+            return repository.save(newModel);
+        }
 
-    protected void updateDataDBFromUpdate(MODEL dataToUpdate, MODEL dataDB){
-        mapper.updateModelFromModel(dataDB, dataToUpdate);
-    }
+        @Override
+        public MODEL update(MODEL newModel) {
+            validateMandatoryFields(newModel);
+            validateBusinessLogicToUpdate(newModel);
+            MODEL modelBD = validateId(newModel.getId());
+            prepareToUpdate(newModel, modelBD);
 
-    @Override
-    public MODEL getById(TYPE_PK id){
-        return this.validateIdModelExists(id);
-    }
+            return repository.save(newModel);
+        }
 
-    @Override
-    public MODEL deleteById(TYPE_PK id){
-        MODEL modelToRemove = this.validateIdModelExists(id);
-        this.repository.delete(modelToRemove);
-        return modelToRemove;
-    }
+        @Override
+        public MODEL delete(TYPE_PK id) {
+            MODEL model = validateId(id);
+            validateBusinessLogicToDelete(model);
+            repository.deleteById(model.getId());
+            return model;
+        }
+        protected MODEL validateId(TYPE_PK id) {
 
-    private MODEL validateIdModelExists(TYPE_PK id){
-        boolean valid = true;
-        MODEL dadoBD = null;
+            Optional<MODEL> model = repository.findById(id);
 
-        if(Objects.nonNull(id)) {
-            dadoBD = this.internalGetById(id);
-            if (dadoBD == null) {
-                valid = false;
+            if(model.isEmpty()) {
+                throw new BusinessException(ErrorValidation.INVALID_ID);
             }
-        }else{
-            valid = false;
+            return model.get();
         }
 
-        if(Boolean.FALSE.equals(valid)){
-            throw new DataException("Objeto não existe");
+
+
+        protected abstract void validateBusinessToList(List<MODEL> modelList);
+
+        protected abstract void prepareToCreate(MODEL newModel) ;
+
+        protected abstract void validateBusinessLogicToCreate(MODEL newModel);
+
+        protected abstract void prepareToUpdate(MODEL newModel, MODEL model);
+
+        protected abstract void validateBusinessLogicToUpdate(MODEL model);
+
+        protected abstract void validateBusinessLogicToDelete(MODEL model);
+
+        protected abstract void validateBusinessLogic(MODEL data);
+
+        protected void validateMandatoryFields(MODEL data){
+            String response = ModelReflection.getInvalidMandatoryFields(data).toString();
+            if(!response.isEmpty()){
+                throw new MandatoryException(response);
+            }
         }
-        return dadoBD;
-    }
-
-    private MODEL internalGetById(TYPE_PK id){
-        Optional<MODEL> byId = repository.findById(id);
-        return byId.orElse(null);
-    }
-
-    protected abstract void validateBusinessLogicForInsert(MODEL dado);
-
-    protected abstract void validateBusinessLogicForUpdate(MODEL dado) ;
-
-    protected abstract void validateBusinessLogic(MODEL dado);
-
-    protected void validateMandatoryFields(MODEL dado){
-        String response = ModelReflection.getInvalidMandatoryFields(dado).toString();
-        if(!response.isEmpty()){
-            throw new MandatoryException(response);
-        }
-    }
 }
