@@ -1,4 +1,4 @@
-package br.ueg.progweb2.arquitetura.model;
+package br.ueg.progweb2.arquitetura.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

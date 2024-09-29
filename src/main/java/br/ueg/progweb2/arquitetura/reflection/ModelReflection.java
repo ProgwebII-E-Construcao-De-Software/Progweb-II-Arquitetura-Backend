@@ -1,11 +1,7 @@
 package br.ueg.progweb2.arquitetura.reflection;
 
+import br.ueg.progweb2.arquitetura.annotations.MandatoryField;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
-import br.ueg.progweb2.arquitetura.model.MandatoryField;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

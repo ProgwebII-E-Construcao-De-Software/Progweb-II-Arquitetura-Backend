@@ -15,14 +15,14 @@ public interface GenericMapper<
         TYPE_PK
         > extends GenericUpdateMapper<MODEL, TYPE_PK> {
 
-    MODEL toModel(DTO dto);
-    MODEL fromModelCreatedToModel(DTOCreate dtoCreate);
+    MODEL fromDTOtoModel(DTO dto);
+    MODEL fromDTOCreateToModel(DTOCreate dtoCreate);
 
-    MODEL fromModelUpdatedToModel(DTOUpdate dtoUpdate);
+    MODEL fromDTOUpdateToModel(DTOUpdate dtoUpdate);
 
 
 
-    DTO toDTO(MODEL model);
+    DTO fromModeltoDTO(MODEL model);
 
     @Named(value = "toDTOList")
     DTOList toDTOList(MODEL model);

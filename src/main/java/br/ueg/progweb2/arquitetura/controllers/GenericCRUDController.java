@@ -35,8 +35,8 @@ public abstract class GenericCRUDController<
     @PostMapping
     @Operation(description = "End point para inclusão de dados")
     public ResponseEntity<DTO> create(@RequestBody DTOCreate dto) {
-        MODEL inputModel = mapper.fromModelCreatedToModel(dto);
-        DTO resultDTO = mapper.toDTO(service.create(inputModel));
+        MODEL inputModel = mapper.fromDTOCreateToModel(dto);
+        DTO resultDTO = mapper.fromModeltoDTO(service.create(inputModel));
         return ResponseEntity.ok(resultDTO);
     }
 
@@ -45,10 +45,10 @@ public abstract class GenericCRUDController<
     public ResponseEntity<DTO> update(
             @RequestBody DTOUpdate dto,
             @PathVariable("id") TYPE_PK id) {
-        MODEL inputModel = mapper.fromModelUpdatedToModel(dto);
+        MODEL inputModel = mapper.fromDTOUpdateToModel(dto);
         inputModel.setId(id);
         MODEL modelSaved = service.update(inputModel);
-        return ResponseEntity.ok(mapper.toDTO(modelSaved));
+        return ResponseEntity.ok(mapper.fromModeltoDTO(modelSaved));
     }
 
     @GetMapping
@@ -65,7 +65,7 @@ public abstract class GenericCRUDController<
     public ResponseEntity<DTO> getById(
             @PathVariable("id") TYPE_PK id
     ) {
-        DTO dtoResult = mapper.toDTO(service.getById(id));
+        DTO dtoResult = mapper.fromModeltoDTO(service.getById(id));
         return ResponseEntity.ok(dtoResult);
     }
 
@@ -74,7 +74,7 @@ public abstract class GenericCRUDController<
     public ResponseEntity<DTO> remove(
             @PathVariable("id") TYPE_PK id
     ) {
-        DTO dtoResult = mapper.toDTO(service.deleteById(id));
+        DTO dtoResult = mapper.fromModeltoDTO(service.deleteById(id));
         return ResponseEntity.ok(dtoResult);
     }
 
