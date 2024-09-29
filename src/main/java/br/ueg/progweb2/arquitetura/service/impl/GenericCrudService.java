@@ -30,7 +30,7 @@ public abstract class GenericCrudService<
 
         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
         @Autowired
-        REPOSITORY repository;
+        protected REPOSITORY repository;
 
         public List<MODEL> getAll() {
             var modelList = repository.findAll();
@@ -44,7 +44,8 @@ public abstract class GenericCrudService<
 
         public MODEL create(MODEL newModel) {
             validateMandatoryFields(newModel);
-            validateBusinessLogicToCreate(newModel);prepareToCreate(newModel);
+            validateBusinessLogicToCreate(newModel);
+            prepareToCreate(newModel);
             return repository.save(newModel);
         }
 
@@ -92,9 +93,9 @@ public abstract class GenericCrudService<
         protected abstract void validateBusinessLogic(MODEL data);
 
         protected void validateMandatoryFields(MODEL data){
-            String response = ModelReflection.getInvalidMandatoryFields(data).toString();
+            List<String> response = ModelReflection.getInvalidMandatoryFields(data);
             if(!response.isEmpty()){
-                throw new MandatoryException(response);
+                throw new MandatoryException(response.toString());
             }
         }
 }

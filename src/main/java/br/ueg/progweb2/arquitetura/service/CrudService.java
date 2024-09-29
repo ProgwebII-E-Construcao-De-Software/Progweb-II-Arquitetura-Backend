@@ -9,8 +9,8 @@ public interface CrudService<
         > {
 
     List<MODEL> listAll();
-    MODEL create(MODEL dado);
-    MODEL update(MODEL dado);
+    MODEL create(MODEL model);
+    MODEL update(MODEL model);
     MODEL delete(TYPE_PK id);
     MODEL getById(TYPE_PK id);
 
