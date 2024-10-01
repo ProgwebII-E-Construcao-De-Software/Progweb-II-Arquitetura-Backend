@@ -2,6 +2,7 @@ package br.ueg.progweb2.arquitetura.reflection;
 
 import br.ueg.progweb2.arquitetura.annotations.MandatoryField;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
+import jakarta.persistence.Entity;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -80,18 +81,20 @@ public class ModelReflection {
     }
 
     public static boolean isFieldsIdentical(GenericModel<?> classOne, GenericModel<?> classTwo, String[] fieldNames) {
-        boolean equal = false;
+
         if (classOne.getClass().getSimpleName().equals(classTwo.getClass().getSimpleName())) {
             for (String fieldName : fieldNames) {
                 try {
                     Field field = classOne.getClass().getDeclaredField(fieldName);
                     field.setAccessible(true);
 
-
                     Object classOneResult = getFieldValue(classOne, field.getType(), field);
                     Object classTwoResult = getFieldValue(classTwo, field.getType(), field);
 
-                    equal = classOneResult == classTwoResult;
+                   if (!Objects.equals(classOneResult, classTwoResult))
+                   {
+                       return false;
+                   }
 
                 } catch (NoSuchFieldException e) {
                     throw new RuntimeException("ERROR while trying to get the field : "
@@ -101,7 +104,7 @@ public class ModelReflection {
                 }
             }
         }
-        return equal;
+        return true;
 
     }
 
