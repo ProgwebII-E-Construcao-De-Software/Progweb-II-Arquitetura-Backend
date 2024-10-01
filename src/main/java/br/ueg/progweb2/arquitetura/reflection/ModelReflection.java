@@ -2,6 +2,7 @@ package br.ueg.progweb2.arquitetura.reflection;
 
 import br.ueg.progweb2.arquitetura.annotations.MandatoryField;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
+import jakarta.persistence.Entity;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -17,20 +18,21 @@ public class ModelReflection {
 
     /**
      * Method responsible for return Entity fields from a given model each implements GenericModel
+     *
      * @param clazz
      * @return entityFields
      */
-    public static List<Field> getEntityFields(GenericModel<?> clazz){
+    public static List<Field> getEntityFields(GenericModel<?> clazz) {
 
         List<Field> allFields = List.of(clazz.getClass().getDeclaredFields());
         List<Field> entityFields = new ArrayList<>(List.of());
 
         allFields.forEach(
                 field -> Arrays.stream(field.getDeclaredAnnotations()).forEach(annotation -> {
-                    if(isEntityAnnotation(annotation)){
+                    if (isEntityAnnotation(annotation)) {
                         entityFields.add(field);
                     }
-            })
+                })
         );
 
         return entityFields;
@@ -38,14 +40,15 @@ public class ModelReflection {
 
     /**
      * Method responsible for return the mandatory fields from a given model each implements GenericModel
+     *
      * @param clazz
      * @return mandatoryFields
      */
-    public static List<Field> getMandatoryFields(GenericModel<?> clazz){
+    public static List<Field> getMandatoryFields(GenericModel<?> clazz) {
         List<Field> allFields = getEntityFields(clazz);
         List<Field> mandatoryFields = new ArrayList<>(List.of());
         allFields.forEach(field -> {
-            if(field.isAnnotationPresent(MandatoryField.class)){
+            if (field.isAnnotationPresent(MandatoryField.class)) {
                 mandatoryFields.add(field);
             }
         });
@@ -54,14 +57,15 @@ public class ModelReflection {
 
 
     /**
-     *  Method responsible for return the value of a given field
+     * Method responsible for return the value of a given field
+     *
      * @param clazz
      * @param returnType
      * @param field
      * @return result
      */
     @SuppressWarnings("unchecked")
-    public static <T> T getFieldValue(GenericModel<?> clazz, T returnType, Field field){
+    public static <T> T getFieldValue(GenericModel<?> clazz, T returnType, Field field) {
         String fieldGetMethodName = "get" + StringReflection.uCFirst(field.getName());
         try {
 
@@ -71,18 +75,66 @@ public class ModelReflection {
         } catch (Exception e) {
             throw new RuntimeException(
                     String.format("ERROR: While tying to call methods %s from %s: %s",
-                    fieldGetMethodName, clazz.getClass().getSimpleName(), e.getMessage())
+                            fieldGetMethodName, clazz.getClass().getSimpleName(), e.getMessage())
             );
         }
+    }
+
+    public static boolean isFieldsIdentical(GenericModel<?> classOne, GenericModel<?> classTwo, String[] fieldNames) {
+
+        if (classOne.getClass().getSimpleName().equals(classTwo.getClass().getSimpleName())) {
+            for (String fieldName : fieldNames) {
+                try {
+                    Field field = classOne.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+
+                    Object classOneResult = getFieldValue(classOne, field.getType(), field);
+                    Object classTwoResult = getFieldValue(classTwo, field.getType(), field);
+
+                   if (!Objects.equals(classOneResult, classTwoResult))
+                   {
+                       return false;
+                   }
+
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException("ERROR while trying to get the field : "
+                            + fieldName +
+                            "from a instance of "
+                            + classOne.getClass().getSimpleName() + e);
+                }
+            }
+        }
+        return true;
+
+    }
+
+    public static List<Field> getIdenticalFields(GenericModel<?> classOne, GenericModel<?> classTwo) {
+        List<Field> fieldsIdentical = new ArrayList<>();
+        if (classOne.getClass().getSimpleName().equals(classTwo.getClass().getSimpleName())) {
+
+            Field[] fields = classOne.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                Object classOneResult = getFieldValue(classOne, field.getType(), field);
+                Object classTwoResult = getFieldValue(classTwo, field.getType(), field);
+
+                if (classOneResult == classTwoResult) {
+                    fieldsIdentical.add(field);
+                }
+            }
+        }
+        return fieldsIdentical;
+
+
     }
 
 
     /**
      * Method responsible for  return if a given annotation represents an atribute af a field
+     *
      * @param annotation
      * @return isEntityAnnotation
      */
-    public static boolean isEntityAnnotation(Annotation annotation){
+    public static boolean isEntityAnnotation(Annotation annotation) {
         String name = annotation.annotationType().getSimpleName();
         return modelFieldAnnotation.contains(name);
     }
@@ -90,15 +142,15 @@ public class ModelReflection {
 
     /**
      * Method responsible for return  if a given field was filled
+     *
      * @param clazz
      * @param field
      * @return isFieldFilled
      */
-    public static boolean isFieldFilled(GenericModel<?> clazz, Field field){
+    public static boolean isFieldFilled(GenericModel<?> clazz, Field field) {
         Object result = getFieldValue(clazz, field.getType(), field);
-        if(Objects.nonNull(result))
-        {
-            if(String.class.isAssignableFrom(field.getType())){
+        if (Objects.nonNull(result)) {
+            if (String.class.isAssignableFrom(field.getType())) {
                 String resultString = String.valueOf(result);
                 return !resultString.isEmpty();
             }
@@ -107,10 +159,10 @@ public class ModelReflection {
         return false;
     }
 
-    public static List<String> getInvalidMandatoryFields(GenericModel<?> clazz){
+    public static List<String> getInvalidMandatoryFields(GenericModel<?> clazz) {
         List<Field> invalidMandatoryFields = new ArrayList<>(List.of());
         getMandatoryFields(clazz).forEach(field -> {
-            if(!isFieldFilled(clazz, field)){
+            if (!isFieldFilled(clazz, field)) {
                 invalidMandatoryFields.add(field);
             }
         });
