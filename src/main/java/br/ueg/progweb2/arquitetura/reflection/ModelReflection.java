@@ -80,6 +80,13 @@ public class ModelReflection {
         }
     }
 
+    /**
+     *
+     * @param classOne
+     * @param classTwo
+     * @param fieldNames
+     * @return if two instances have  are identical
+     */
     public static boolean isFieldsIdentical(GenericModel<?> classOne, GenericModel<?> classTwo, String[] fieldNames) {
 
         if (classOne.getClass().getSimpleName().equals(classTwo.getClass().getSimpleName())) {
