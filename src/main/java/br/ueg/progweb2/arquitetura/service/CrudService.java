@@ -15,4 +15,5 @@ public interface CrudService<
     MODEL getById(TYPE_PK id);
 
     MODEL deleteById(TYPE_PK id);
+    List<MODEL> deleteList(TYPE_PK[] ids);
 }

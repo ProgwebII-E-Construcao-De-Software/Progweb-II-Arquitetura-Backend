@@ -150,4 +150,22 @@ public abstract class GenericCRUDController<
 //    public String getRoleName(String action){
 //        return "ROLE_".concat(this.service.getEntityType().getSimpleName().toUpperCase().concat("_"+action.toUpperCase()));
 //    }
+
+    @DeleteMapping(path ="/",
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    @Operation(description = "Método utilizado para remover varias entidades pelos ids informados", responses = {
+            @ApiResponse(responseCode = "200", description = "Entidade Removida",
+                    useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Acesso negado",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MessageResponse.class)))
+    })
+
+    public ResponseEntity<List<DTOList>> deleteItems(@RequestBody TYPE_PK[] ids){
+        List<DTOList> dtoResult = mapper.fromModelToDTOList(service.deleteList(ids));
+        return ResponseEntity.ok(dtoResult);
+    }
 }
