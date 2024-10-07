@@ -29,4 +29,6 @@ public interface GenericMapper<
 
     @IterableMapping(qualifiedByName = "toDTOList")
     List<DTOList> fromModelToDTOList(List<MODEL> modelList);
+
+
 }
