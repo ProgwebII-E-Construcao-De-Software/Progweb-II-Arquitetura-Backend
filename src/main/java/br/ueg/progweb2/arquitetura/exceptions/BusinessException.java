@@ -8,4 +8,8 @@ public @Getter class BusinessException extends RuntimeException {
         super(error.getMessage());
         this.error = error;
     }
+    public BusinessException(String message, ErrorValidation error) {
+        super(message + error.getMessage());
+        this.error = error;
+    }
 }
