@@ -1,4 +1,4 @@
-package br.ueg.progweb2.arquitetura.reflection;
+package br.ueg.progweb2.arquitetura.util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

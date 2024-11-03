@@ -1,8 +1,7 @@
-package br.ueg.progweb2.arquitetura.reflection;
+package br.ueg.progweb2.arquitetura.util;
 
 import br.ueg.progweb2.arquitetura.annotations.MandatoryField;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
-import jakarta.persistence.Entity;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -85,7 +84,7 @@ public class ModelReflection {
      * @param classOne
      * @param classTwo
      * @param fieldNames
-     * @return if two instances have  are identical
+     * @return if two instances are identical
      */
     public static boolean isFieldsIdentical(GenericModel<?> classOne, GenericModel<?> classTwo, String[] fieldNames) {
 
