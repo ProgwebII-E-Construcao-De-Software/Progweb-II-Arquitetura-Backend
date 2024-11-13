@@ -44,11 +44,13 @@ public abstract class ApiSecurityConfig {
      *
      * @return
      */
-    @Autowired
-    protected LogoutService logoutHandler;
+
 
     @Autowired
     protected AuthenticationProvider authenticationProvider;
+
+    @Autowired
+    protected LogoutService logoutHandler;
 
     @Autowired
     private ApiWebConfig apiWebConfig;

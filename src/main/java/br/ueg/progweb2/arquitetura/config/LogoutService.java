@@ -3,16 +3,17 @@ package br.ueg.progweb2.arquitetura.config;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import static br.ueg.progweb2.arquitetura.config.Constante.HEADER_AUTHORIZATION;
 import static br.ueg.progweb2.arquitetura.config.Constante.HEADER_AUTHORIZATION_BEARER;
 
-@Service
-@NoArgsConstructor
+@Component
 public class LogoutService implements LogoutHandler {
 
   @Override
