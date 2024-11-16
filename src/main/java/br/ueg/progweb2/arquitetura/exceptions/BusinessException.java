@@ -6,7 +6,6 @@ package br.ueg.progweb2.arquitetura.exceptions;
 
 
 import br.ueg.progweb2.arquitetura.util.Util;
-import br.ueg.progweb2.exampleuse.exceptions.ErrorValidation;
 import lombok.Getter;
 import org.apache.logging.log4j.util.Strings;
 
