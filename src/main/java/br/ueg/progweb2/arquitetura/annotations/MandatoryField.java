@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface MandatoryField {
 
-    public String name() default "";
-    public String type();
+    String name() default "";
+    String type();
 
 }

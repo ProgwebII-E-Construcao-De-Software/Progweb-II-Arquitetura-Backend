@@ -1,30 +1,32 @@
 package br.ueg.progweb2.arquitetura.service.impl;
 
+import br.ueg.progweb2.arquitetura.exceptions.ApiMessageCode;
 import br.ueg.progweb2.arquitetura.exceptions.BusinessException;
-import br.ueg.progweb2.arquitetura.exceptions.ErrorValidation;
-import br.ueg.progweb2.arquitetura.exceptions.MandatoryException;
+import br.ueg.progweb2.arquitetura.exceptions.FieldResponse;
 import br.ueg.progweb2.arquitetura.mapper.GenericUpdateMapper;
 import br.ueg.progweb2.arquitetura.model.GenericModel;
-import br.ueg.progweb2.arquitetura.reflection.ModelReflection;
+import br.ueg.progweb2.arquitetura.reflection.ReflectionUtils;
 import br.ueg.progweb2.arquitetura.service.CrudService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-@Transactional(propagation = Propagation.REQUIRED)
 public abstract class GenericCrudService<
-        MODEL extends GenericModel<TYPE_PK>,
-        TYPE_PK,
-        REPOSITORY extends JpaRepository<MODEL, TYPE_PK>
-        > implements CrudService<
-        MODEL,
-        TYPE_PK
-        > {
+            MODEL extends GenericModel<TYPE_PK>,
+            TYPE_PK,
+            REPOSITORY extends JpaRepository<MODEL, TYPE_PK>
+        > implements CrudService <
+            MODEL,
+            TYPE_PK
+        >{
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private GenericUpdateMapper<MODEL, TYPE_PK> mapper;
@@ -33,66 +35,88 @@ public abstract class GenericCrudService<
     @Autowired
     protected REPOSITORY repository;
 
-    public List<MODEL> getAll() {
-        var modelList = repository.findAll();
-        validateBusinessToList(modelList);
-        return modelList;
+    private Class<TYPE_PK> entityClass;
+
+    public List<MODEL> listAll(){
+        return repository.findAll();
     }
 
-    public MODEL getById(TYPE_PK id) {
-        return validateId(id);
+    @Autowired
+    private MessageSource messageSource;
+
+    @Override
+    public MODEL create(MODEL dado) {
+        prepareToCreate(dado);
+        setListReferences(dado);
+        validateMandatoryFields(dado);
+        validateBusinessLogic(dado);
+        validateBusinessLogicToCreate(dado);
+        MODEL saved = repository.saveAndFlush(dado);
+        return this.getById(saved.getId());
     }
 
-    public MODEL create(MODEL newModel) {
-        validateMandatoryFields(newModel);
-        validateBusinessLogicToCreate(newModel);
-        prepareToCreate(newModel);
-        return repository.save(newModel);
+    protected abstract void validateBusinessToList(List<MODEL> dataList);
+
+    protected abstract void prepareToCreate(MODEL dado);
+
+    @Override
+    public MODEL update(MODEL dataToUpdate){
+        var dataDB = validateIdModelExists(dataToUpdate.getId());
+        setListReferences(dataToUpdate);
+        validateMandatoryFields(dataToUpdate);
+        validateBusinessLogic(dataToUpdate);
+        validateBusinessLogicToCreate(dataToUpdate);
+        updateDataDBFromUpdate(dataToUpdate, dataDB);
+        return repository.save(dataDB);
+    }
+
+    protected void updateDataDBFromUpdate(MODEL dataToUpdate, MODEL dataDB){
+        mapper.updateModelFromModel(dataDB, dataToUpdate);
+    };
+
+    @Override
+    public MODEL getById(TYPE_PK id){
+        return this.validateIdModelExists(id);
     }
 
     @Override
-    public MODEL update(MODEL newModel) {
-        validateMandatoryFields(newModel);
-        validateBusinessLogicToUpdate(newModel);
-        MODEL modelBD = validateId(newModel.getId());
-        prepareToUpdate(newModel, modelBD);
-
-        return repository.save(newModel);
+    public MODEL deleteById(TYPE_PK id){
+        MODEL modelToRemove = this.validateIdModelExists(id);
+        this.repository.delete(modelToRemove);
+        return modelToRemove;
     }
 
-    @Override
-    public MODEL delete(TYPE_PK id) {
-        MODEL model = validateId(id);
-        validateBusinessLogicToDelete(model);
-        repository.deleteById(model.getId());
-        return model;
-    }
+    private MODEL validateIdModelExists(TYPE_PK id){
+        boolean valid = true;
+        MODEL dadoBD = null;
 
-    protected MODEL validateId(TYPE_PK id) {
-
-        Optional<MODEL> model = repository.findById(id);
-
-        if (model.isEmpty()) {
-            throw new BusinessException(ErrorValidation.INVALID_ID);
+        if(Objects.nonNull(id)) {
+            dadoBD = this.internalGetById(id);
+            if (dadoBD == null) {
+                valid = false;
+            }
+        }else{
+            valid = false;
         }
-        return model.get();
-    }
 
-    @Override
-    public List<MODEL> deleteList(TYPE_PK[] ids) {
-        List<MODEL> modelListDeleted = new ArrayList<>();
-        for (TYPE_PK id : ids) {
-            modelListDeleted.add(delete(id));
+        if(Boolean.FALSE.equals(valid)){
+            throw new BusinessException(ApiMessageCode.ERROR_RECORD_NOT_FOUND);
         }
-        return modelListDeleted;
+        return dadoBD;
+    }
+
+    private MODEL internalGetById(TYPE_PK id){
+        Optional<MODEL> byId = repository.findById(id);
+        if(byId.isPresent()){
+            return byId.get();
+        }
+        return null;
     }
 
 
-    protected abstract void validateBusinessToList(List<MODEL> modelList);
 
-    protected abstract void prepareToCreate(MODEL newModel);
-
-    protected abstract void validateBusinessLogicToCreate(MODEL newModel);
+    protected abstract void validateBusinessLogicToCreate(MODEL dado);
+    protected abstract void validateBusinessToList(MODEL data);
 
     protected abstract void prepareToUpdate(MODEL newModel, MODEL model);
 
@@ -100,12 +124,58 @@ public abstract class GenericCrudService<
 
     protected abstract void validateBusinessLogicToDelete(MODEL model);
 
-    protected abstract void validateBusinessLogic(MODEL data);
+    protected abstract void validateBusinessLogic(MODEL dado) ;
 
-    protected void validateMandatoryFields(MODEL data) {
-        List<String> response = ModelReflection.getInvalidMandatoryFields(data);
-        if (!response.isEmpty()) {
-            throw new MandatoryException(response.toString());
+    protected void validateMandatoryFields(MODEL dado) {
+        List<String> mandatoryFieldsNotFilled = ReflectionUtils.getMandatoryFieldsNotFilled(dado);
+        if (!mandatoryFieldsNotFilled.isEmpty()) {
+            List<FieldResponse> fieldResponseErros = mandatoryFieldsNotFilled.stream().map(
+                    s -> {
+                        String messageI18n = messageSource.getMessage(
+                                ApiMessageCode.ARQ_MANDATORY_FIELD.toString(),
+                                s.lines().toArray(),
+                                LocaleContextHolder.getLocale()
+                        );
+                        return new FieldResponse(s, messageI18n);
+                    }).toList();
+            throw new BusinessException(ApiMessageCode.ERROR_MANDATORY_FIELDS, fieldResponseErros);
         }
+    }
+
+    public Class<TYPE_PK> getEntityType() {
+        //TODO MELHORIA - verificar a posição do modelo dinamicamente verificando o tipo entidade
+        if(Objects.isNull(this.entityClass)){
+            this.entityClass = (Class<TYPE_PK>) ((ParameterizedType) this.getClass()
+                    .getGenericSuperclass()).getActualTypeArguments()[0];
+        }
+        return this.entityClass;
+    }
+
+
+
+    private void setListReferences(MODEL modelo) {
+        for (Field entidadeField : ReflectionUtils.getEntityFields(modelo)) {
+            if(
+                    Collection.class.isAssignableFrom(entidadeField.getType())
+            ){
+                ParameterizedType listType = (ParameterizedType) entidadeField.getGenericType();
+                Class<?> listClass = (Class<?>) listType.getActualTypeArguments()[0];
+                if(GenericModel.class.isAssignableFrom(listClass)) {
+                    var list = (Collection<GenericModel<?>>) ReflectionUtils.getFieldValue(modelo, entidadeField.getName());
+                    if(Objects.isNull(list)) { continue; }
+                    System.out.println(listClass.getSimpleName());
+                    for (GenericModel<?> iEntidade : list) {
+                        var entidadeFields = ReflectionUtils.getEntityFields(iEntidade);
+                        for (Field fieldAux : entidadeFields) {
+                            if(fieldAux.getType().isAssignableFrom(modelo.getClass())){
+                                ReflectionUtils.setFieldValue(iEntidade, fieldAux.getName(), modelo);
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
     }
 }
