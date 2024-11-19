@@ -97,6 +97,10 @@ public class BusinessException extends RuntimeException {
 		this.response = response;
 	}
 
+    public BusinessException(String s,  MessageCode code) {
+
+    }
+
 
     /**
 	 * @see Throwable#getMessage()
