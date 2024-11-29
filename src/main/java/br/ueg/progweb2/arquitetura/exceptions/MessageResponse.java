@@ -1,3 +1,7 @@
+/*
+ * MessageResponse.java
+ * Copyright (c) UEG.
+ */
 package br.ueg.progweb2.arquitetura.exceptions;
 
 
