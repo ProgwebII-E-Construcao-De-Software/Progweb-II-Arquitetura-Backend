@@ -74,7 +74,7 @@ public abstract class GenericCrudService<
         setListReferences(dado);
         validateMandatoryFields(dado);
         validateBusinessLogic(dado);
-        validateBusinessLogicForInsert(dado);
+        validateBusinessLogicToCreate(dado);
         MODEL saved = repository.saveAndFlush(dado);
         //TODO verificar para buscar os dados no banco novmente para atualizar dados relacionados
         return this.getById(saved.getId());
@@ -88,7 +88,7 @@ public abstract class GenericCrudService<
         setListReferences(dataToUpdate);
         validateMandatoryFields(dataToUpdate);
         validateBusinessLogic(dataToUpdate);
-        validateBusinessLogicForUpdate(dataToUpdate);
+        validateBusinessLogicToUpdate(dataToUpdate);
         updateDataDBFromUpdate(dataToUpdate, dataDB);
         return repository.save(dataDB);
     }
@@ -136,9 +136,12 @@ public abstract class GenericCrudService<
         return null;
     }
 
-    protected abstract void validateBusinessLogicForInsert(MODEL dado);
+    protected abstract void validateBusinessLogicToCreate(MODEL dado);
 
-    protected abstract void validateBusinessLogicForUpdate(MODEL dado) ;
+    protected abstract void prepareToUpdate(MODEL newModel, MODEL model);
+
+
+    protected abstract void validateBusinessLogicToUpdate(MODEL dado) ;
 
     protected abstract void validateBusinessLogic(MODEL dado) ;
 
