@@ -164,10 +164,9 @@ public class AuthController extends AbstractController {
 	})
 	@GetMapping(path = "/reset-password/request/{email}", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ResponseEntity<?> recoverPassword(
-			@Parameter(description = "EMail do Usuário", required = true) @PathVariable() final String email) {
-		//TODO implementar
+			@Parameter(description = "Email do Usuário", required = true) @PathVariable() final String email) {
 		CredencialDTO credential = userProviderService.getCredentialByEmail(email);
-		return ResponseEntity.ok(new AuthUserDTO(email));
+		return ResponseEntity.ok(userProviderService.resetPasswordHelper(new AuthUserDTO(email)));
 	}
 
 	/**

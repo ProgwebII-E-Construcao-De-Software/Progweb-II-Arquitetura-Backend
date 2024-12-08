@@ -7,4 +7,6 @@ public interface IUserProviderService {
     CredencialDTO getCredentialByLogin(String username);
     CredencialDTO resetPassword(AuthUserDTO authUserDTO);
     CredencialDTO getCredentialByEmail(String email);
+
+    boolean resetPasswordHelper(AuthUserDTO authUserDTO);
 }
