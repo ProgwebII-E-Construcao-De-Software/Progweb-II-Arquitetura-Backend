@@ -74,11 +74,7 @@ public abstract class ApiSecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(
-                                        freeAccessPatterns
-                                )
-                                .permitAll()
-                                .anyRequest().authenticated()
+                        auth -> auth.anyRequest().permitAll()
                 )
                 .sessionManagement(
                         sess -> sess.sessionCreationPolicy(

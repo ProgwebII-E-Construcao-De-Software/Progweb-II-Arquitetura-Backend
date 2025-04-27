@@ -60,7 +60,6 @@ public abstract class GenericCRUDController<
     @Autowired
     protected MAPPER mapper;
 
-    @PreAuthorize(value = "hasRole(#root.this.getRoleName(#root.this.ROLE_CREATE))")
     @PostMapping(
             produces = {MediaType.APPLICATION_JSON_VALUE},
             consumes = {MediaType.APPLICATION_JSON_VALUE}
@@ -83,7 +82,6 @@ public abstract class GenericCRUDController<
     }
 
 
-    @PreAuthorize(value = "hasRole(#root.this.getRoleName(#root.this.ROLE_UPDATE))")
     @PutMapping(path = "/{id}",
             produces = {MediaType.APPLICATION_JSON_VALUE},
             consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -110,7 +108,6 @@ public abstract class GenericCRUDController<
         return ResponseEntity.ok(mapper.toDTO(modelSaved));
     }
 
-    @PreAuthorize(value = "hasRole(#root.this.getRoleName(#root.this.ROLE_READ_ALL))")
     @GetMapping(
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(description = "lista todos modelos", responses = {
@@ -134,7 +131,6 @@ public abstract class GenericCRUDController<
     }
 
 
-    @PreAuthorize(value = "hasRole(#root.this.getRoleName(#root.this.ROLE_READ_ALL))")
     @GetMapping(
             path = "/page",
             produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -156,7 +152,6 @@ public abstract class GenericCRUDController<
         return ResponseEntity.ok(mapPageEntityToDto(pageEntidade));
     }
 
-    @PreAuthorize(value = "hasRole(#root.this.getRoleName(#root.this.ROLE_READ))")
     @GetMapping(path = "/{id}",
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(description = "Obter os dados completos de uma entidiade pelo id informado!", responses = {
@@ -180,7 +175,6 @@ public abstract class GenericCRUDController<
         return ResponseEntity.ok(dtoResult);
     }
 
-    @PreAuthorize(value = "hasRole(#root.this.getRoleName(#root.this.ROLE_DELETE))")
     @DeleteMapping(path ="/{id}",
             produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(description = "Método utilizado para remover uma entidiade pela id informado", responses = {
